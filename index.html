@@ -7,17 +7,24 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
   <title>JUST Admin Panel</title>
-  <style> body { font-family: 'Tajawal', sans-serif; } </style>
+  <style>
+    body { font-family: 'Tajawal', sans-serif; }
+  </style>
 </head>
+
 <body class="bg-gray-100">
 
-<!-- LOGIN PAGE -->
+<!-- LOGIN -->
 <div id="loginPage" class="h-screen flex items-center justify-center">
   <div class="bg-white p-8 rounded-2xl shadow w-80">
     <h2 class="text-xl font-bold mb-4 text-center">Admin Login</h2>
+
     <input id="username" class="w-full mb-3 p-2 border rounded" placeholder="Username" />
     <input id="password" type="password" class="w-full mb-3 p-2 border rounded" placeholder="Password" />
-    <button onclick="login()" class="w-full bg-blue-600 text-white py-2 rounded">Login</button>
+
+    <button onclick="login()" class="w-full bg-blue-600 text-white py-2 rounded">
+      Login
+    </button>
   </div>
 </div>
 
@@ -32,39 +39,80 @@
 
   <div class="p-6 grid md:grid-cols-3 gap-6">
 
-    <!-- Add Info -->
+    <!-- INFO -->
     <div class="bg-white p-4 rounded-xl shadow">
       <h2 class="font-bold mb-3">Add Info</h2>
+
       <input id="infoName" class="w-full mb-2 p-2 border rounded" placeholder="Name" />
       <input id="infoDesc" class="w-full mb-2 p-2 border rounded" placeholder="Description" />
       <input id="infoLoc" class="w-full mb-2 p-2 border rounded" placeholder="Location" />
-      <button onclick="addInfo()" class="w-full bg-blue-500 text-white p-2 rounded">Save</button>
+
+      <button onclick="addInfo()" class="w-full bg-blue-500 text-white p-2 rounded">
+        Save
+      </button>
     </div>
 
-    <!-- Upload Image -->
+    <!-- IMAGE -->
     <div class="bg-white p-4 rounded-xl shadow">
       <h2 class="font-bold mb-3">Upload Image</h2>
+
       <input id="image" type="file" class="w-full mb-2" />
-      <button onclick="uploadImage()" class="w-full bg-green-500 text-white p-2 rounded">Upload</button>
+
+      <button onclick="uploadImage()" class="w-full bg-green-500 text-white p-2 rounded">
+        Upload
+      </button>
     </div>
 
-    <!-- Add Admin -->
+    <!-- ADMIN -->
     <div class="bg-white p-4 rounded-xl shadow">
       <h2 class="font-bold mb-3">Add Admin</h2>
+
       <input id="newUser" class="w-full mb-2 p-2 border rounded" placeholder="Username" />
       <input id="newPass" type="password" class="w-full mb-2 p-2 border rounded" placeholder="Password" />
-      <button onclick="addAdmin()" class="w-full bg-purple-500 text-white p-2 rounded">Create</button>
+
+      <button onclick="addAdmin()" class="w-full bg-purple-500 text-white p-2 rounded">
+        Create
+      </button>
     </div>
 
   </div>
+
+  <!-- LIVE DATA -->
+  <div class="p-6">
+    <div id="liveData" class="bg-white p-4 rounded-xl shadow"></div>
+  </div>
+
 </div>
 
 <script>
-const API = "http://localhost:5000/api";
+const API = "https://just-api-g4tz.onrender.com/api";
 
+/* ================= LOGIN ================= */
+async function login() {
+  const res = await fetch(`${API}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username: username.value,
+      password: password.value
+    })
+  });
+
+  const data = await res.json();
+
+  if (data.token) {
+    localStorage.setItem("token", data.token);
+    showDashboard();
+    loadUniversity();
+  } else {
+    alert("Login failed");
+  }
+}
+
+/* ================= DASHBOARD UI ================= */
 function showDashboard() {
-  document.getElementById("loginPage").classList.add("hidden");
-  document.getElementById("dashboard").classList.remove("hidden");
+  loginPage.classList.add("hidden");
+  dashboard.classList.remove("hidden");
 }
 
 function logout() {
@@ -72,25 +120,25 @@ function logout() {
   location.reload();
 }
 
-async function login() {
-  const res = await fetch(`${API}/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      username: document.getElementById("username").value,
-      password: document.getElementById("password").value
-    })
-  });
-
+/* ================= LOAD DATA ================= */
+async function loadUniversity() {
+  const res = await fetch(`${API}/university`);
   const data = await res.json();
-  if (data.token) {
-    localStorage.setItem("token", data.token);
-    showDashboard();
-  } else {
-    alert("Login failed");
-  }
+
+  document.getElementById("liveData").innerHTML = `
+    <h2 class="text-xl font-bold mb-2">${data.name || ""}</h2>
+    <p class="mb-1">${data.description || ""}</p>
+    <p class="text-gray-500 mb-4">${data.location || ""}</p>
+
+    <div class="grid grid-cols-2 gap-2">
+      ${(data.images || []).map(img => `
+        <img src="${img}" class="rounded h-24 w-full object-cover"/>
+      `).join("")}
+    </div>
+  `;
 }
 
+/* ================= ADD INFO ================= */
 async function addInfo() {
   const token = localStorage.getItem("token");
 
@@ -101,21 +149,25 @@ async function addInfo() {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      name: document.getElementById("infoName").value,
-      description: document.getElementById("infoDesc").value,
-      location: document.getElementById("infoLoc").value
+      name: infoName.value,
+      description: infoDesc.value,
+      location: infoLoc.value
     })
   });
 
-  alert("Info added");
+  loadUniversity(); // 🔥 instant update
 }
 
+/* ================= UPLOAD IMAGE ================= */
 async function uploadImage() {
   const token = localStorage.getItem("token");
-  const formData = new FormData();
 
-  const file = document.getElementById("image").files[0];
-  if (file) formData.append("image", file);
+  const formData = new FormData();
+  const file = image.files[0];
+
+  if (!file) return;
+
+  formData.append("image", file);
 
   await fetch(`${API}/university`, {
     method: "POST",
@@ -125,24 +177,30 @@ async function uploadImage() {
     body: formData
   });
 
-  alert("Image uploaded");
+  loadUniversity(); // 🔥 instant update
 }
 
+/* ================= ADD ADMIN ================= */
 async function addAdmin() {
   await fetch(`${API}/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      username: document.getElementById("newUser").value,
-      password: document.getElementById("newPass").value
+      username: newUser.value,
+      password: newPass.value
     })
   });
 
   alert("Admin created");
 }
 
+/* ================= AUTO REFRESH ================= */
+setInterval(loadUniversity, 5000);
+
+/* ================= INIT ================= */
 if (localStorage.getItem("token")) {
   showDashboard();
+  loadUniversity();
 }
 </script>
 
