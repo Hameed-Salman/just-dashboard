@@ -70,6 +70,11 @@ For testing purposes only:
 - Password: Aa100200  
 
 
+## Notice
+
+This is a live deployed system.  
+Please avoid uploading any personal or sensitive images, as all content is publicly accessible.
+
 ## Author
 
 Hameed-Salman
