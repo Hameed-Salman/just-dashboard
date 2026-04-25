@@ -69,7 +69,6 @@ For testing purposes only:
 - Username: admin  
 - Password: Aa100200  
 
-Note: These credentials are for local development/testing only and should be changed in production.
 
 ## Author
 
